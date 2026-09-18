@@ -1,6 +1,6 @@
+.DS_Store
 node_modules/
 dist/
 *.log
-.chatgpt-exporter.yaml
 chatgpt-export/
-.DS_Store
+.chatgpt-exporter.yaml
