@@ -56,11 +56,12 @@ export function walkConversationTree(
     for (const rootId of roots) {
       const paths = traceAllPaths(detail.mapping, rootId);
       for (const path of paths) {
+        // Skip paths with any missing nodes
+        if (path.some(nodeId => !detail.mapping[nodeId]?.message)) continue;
+
         const messages = path
-          .map((nodeId) => detail.mapping[nodeId]?.message)
-          .filter((m): m is NonNullable<typeof m> => !!m)
-          .map(toWalkedMessage)
-          .filter((m) => m.content !== null);
+          .map((nodeId) => detail.mapping[nodeId]?.message!)
+          .map(toWalkedMessage);
 
         if (messages.length > 0) {
           branches.push({
