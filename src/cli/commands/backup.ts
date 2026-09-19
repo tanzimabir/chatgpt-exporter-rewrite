@@ -12,7 +12,8 @@ import { logger } from '../../utils/logger.js';
 import { createProgressBar } from '../progress.js';
 
 export interface BackupCommandOptions {
-  token: string;
+  token?: string;
+  cookies?: string;
   output: string;
   formats: string[];
   concurrency: number;
@@ -96,6 +97,7 @@ export async function backupCommand(
 ): Promise<void> {
   const {
     token,
+    cookies,
     output,
     formats,
     concurrency,
@@ -122,6 +124,7 @@ export async function backupCommand(
     verbose,
     timeout: { api: timeoutApi, download: timeoutDownload },
     rotateUserAgent,
+    cookies,
   });
   const spinner = ora('Authenticating...').start();
 
@@ -323,13 +326,10 @@ export async function backupCommand(
     if (error instanceof Error) {
       if (error.name === 'AuthenticationError') {
         console.error(chalk.red(`\nAuthentication failed: ${error.message}`));
-        console.error(chalk.yellow('\nTo get a new access token:'));
-        console.error('  1. Open chatgpt.com in your browser and log in');
-        console.error('  2. Open DevTools (F12) → Network tab');
-        console.error('  3. Refresh the page or send a message');
-        console.error('  4. Find any request to /backend-api/*');
-        console.error('  5. Look in Request Headers for "Authorization: Bearer <token>"');
-        console.error('  6. Copy the token (starts with "eyJhbG...")');
+        console.error(chalk.yellow('\nTo authenticate, either:'));
+        console.error('  1. Bearer token: open chatgpt.com → DevTools → Network → /backend-api/* → Authorization header');
+        console.error('  2. Cookies: open chatgpt.com → DevTools → Application → Cookies → copy all as "key=value; key2=value2"');
+        console.error('     Then pass with --cookies flag or CHATGPT_COOKIES env variable.');
       } else {
         console.error(chalk.red(`\nError: ${error.message}`));
       }

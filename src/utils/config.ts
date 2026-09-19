@@ -5,6 +5,9 @@ import { logger } from './logger.js';
 
 export interface ExporterConfig {
   token?: string;
+  cookies?: string;
+  tokenFile?: string;
+  cookiesFile?: string;
   output: string;
   format: string[];
   concurrency: number;
@@ -98,6 +101,9 @@ function flattenConfig(raw: Record<string, unknown>): Partial<ExporterConfig> {
 
   // Top-level
   if (raw.token !== undefined) config.token = raw.token;
+  if (raw.cookies !== undefined) config.cookies = raw.cookies;
+  if (raw.tokenFile !== undefined) config.tokenFile = raw.tokenFile;
+  if (raw.cookiesFile !== undefined) config.cookiesFile = raw.cookiesFile;
   if (raw.output !== undefined) config.output = raw.output;
   if (raw.format !== undefined) config.format = raw.format;
   if (raw.concurrency !== undefined) config.concurrency = raw.concurrency;

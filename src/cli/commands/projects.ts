@@ -5,15 +5,16 @@ import { BackupService } from '../../services/backup-service.js';
 import { StorageService } from '../../services/storage-service.js';
 
 export interface ProjectsCommandOptions {
-  token: string;
+  token?: string;
+  cookies?: string;
   verbose: boolean;
   json: boolean;
 }
 
 export async function projectsCommand(options: ProjectsCommandOptions): Promise<void> {
-  const { token, verbose, json } = options;
+  const { token, cookies, verbose, json } = options;
 
-  const client = new ChatGPTClient(token, { verbose });
+  const client = new ChatGPTClient(token, { verbose, cookies });
   const storage = new StorageService('./chatgpt-export');
   const service = new BackupService(client, storage);
 
@@ -58,13 +59,10 @@ export async function projectsCommand(options: ProjectsCommandOptions): Promise<
     if (error instanceof Error) {
       if (error.name === 'AuthenticationError') {
         console.error(chalk.red(`\nAuthentication failed: ${error.message}`));
-        console.error(chalk.yellow('\nTo get a new access token:'));
-        console.error(' 1. Open chatgpt.com in your browser and log in');
-        console.error(' 2. Open DevTools (F12) → Network tab');
-        console.error(' 3. Refresh the page or send a message');
-        console.error(' 4. Find any request to /backend-api/*');
-        console.error(' 5. Look in Request Headers for "Authorization: Bearer <token>"');
-        console.error(' 6. Copy the token (starts with "eyJhbG...")');
+        console.error(chalk.yellow('\nTo authenticate, either:'));
+        console.error('  1. Bearer token: open chatgpt.com → DevTools → Network → /backend-api/* → Authorization header');
+        console.error('  2. Cookies: open chatgpt.com → DevTools → Application → Cookies → copy all as "key=value; key2=value2"');
+        console.error('     Then pass with --cookies flag or CHATGPT_COOKIES env variable.');
       } else {
         console.error(chalk.red(`\nError: ${error.message}`));
       }

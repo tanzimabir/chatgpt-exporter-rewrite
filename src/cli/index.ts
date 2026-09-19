@@ -18,6 +18,7 @@ export function createCli(): Command {
     .command('backup')
     .description('Download all conversations')
     .option('-t, --token <token>', 'Access token (or CHATGPT_TOKEN env)')
+    .option('-c, --cookies <string>', 'Cookie string from browser (for cookie auth)')
     .option('-o, --output <dir>', 'Output directory', './chatgpt-export')
     .option('-f, --format <fmt...>', 'Output format(s): md, txt, json, jsonl, html', ['md'])
     .option('--concurrency <n>', 'Parallel downloads', (v) => parseInt(v, 10), 3)
@@ -37,12 +38,14 @@ export function createCli(): Command {
     .option('-v, --verbose', 'Verbose logging', false)
     .action(async (options) => {
       const token = options.token ?? process.env.CHATGPT_TOKEN;
-      if (!token) {
-        console.error('Error: Access token required. Use --token or set CHATGPT_TOKEN env variable.');
+      const cookies = options.cookies ?? process.env.CHATGPT_COOKIES;
+      if (!token && !cookies) {
+        console.error('Error: Authentication required. Use --token, --cookies, or set CHATGPT_TOKEN/CHATGPT_COOKIES env variable.');
         process.exit(1);
       }
       await backupCommand({
         token,
+        cookies,
         output: options.output,
         formats: options.format,
         concurrency: options.concurrency,
@@ -67,18 +70,21 @@ export function createCli(): Command {
     .command('list')
     .description('List conversations without downloading')
     .option('-t, --token <token>', 'Access token (or CHATGPT_TOKEN env)')
+    .option('-c, --cookies <string>', 'Cookie string from browser (for cookie auth)')
     .option('--delay <ms>', 'Delay between requests in ms', (v) => parseInt(v, 10), 500)
     .option('--project <name-or-id>', 'List conversations from a specific project')
     .option('-v, --verbose', 'Verbose logging', false)
     .option('--json', 'Output as JSON', false)
     .action(async (options) => {
       const token = options.token ?? process.env.CHATGPT_TOKEN;
-      if (!token) {
-        console.error('Error: Access token required. Use --token or set CHATGPT_TOKEN env variable.');
+      const cookies = options.cookies ?? process.env.CHATGPT_COOKIES;
+      if (!token && !cookies) {
+        console.error('Error: Authentication required. Use --token, --cookies, or set CHATGPT_TOKEN/CHATGPT_COOKIES env variable.');
         process.exit(1);
       }
       await listCommand({
         token,
+        cookies,
         delay: options.delay,
         verbose: options.verbose,
         json: options.json,
@@ -90,16 +96,19 @@ export function createCli(): Command {
     .command('projects')
     .description('List all projects')
     .option('-t, --token <token>', 'Access token (or CHATGPT_TOKEN env)')
+    .option('-c, --cookies <string>', 'Cookie string from browser (for cookie auth)')
     .option('-v, --verbose', 'Verbose logging', false)
     .option('--json', 'Output as JSON', false)
     .action(async (options) => {
       const token = options.token ?? process.env.CHATGPT_TOKEN;
-      if (!token) {
-        console.error('Error: Access token required. Use --token or set CHATGPT_TOKEN env variable.');
+      const cookies = options.cookies ?? process.env.CHATGPT_COOKIES;
+      if (!token && !cookies) {
+        console.error('Error: Authentication required. Use --token, --cookies, or set CHATGPT_TOKEN/CHATGPT_COOKIES env variable.');
         process.exit(1);
       }
       await projectsCommand({
         token,
+        cookies,
         verbose: options.verbose,
         json: options.json,
       });

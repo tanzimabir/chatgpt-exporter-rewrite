@@ -15,18 +15,21 @@ export interface ClientOptions {
   verbose?: boolean;
   timeout?: TimeoutConfig;
   rotateUserAgent?: boolean;
+  cookies?: string;
 }
 
 export class ChatGPTClient {
-  private accessToken: string;
+  private accessToken: string | undefined;
+  private cookies: string | undefined;
   private verbose: boolean;
   private deviceId: string;
   private timeoutConfig: TimeoutConfig;
   private rotateUserAgent: boolean;
   private userAgent: string;
 
-  constructor(accessToken: string, options: ClientOptions = {}) {
+  constructor(accessToken: string | undefined, options: ClientOptions = {}) {
     this.accessToken = accessToken;
+    this.cookies = options.cookies;
     this.verbose = options.verbose ?? false;
     this.deviceId = crypto.randomUUID();
     this.timeoutConfig = options.timeout ?? { api: 30000, download: 120000 };
@@ -42,7 +45,7 @@ export class ChatGPTClient {
   }
 
   private getHeaders(): Record<string, string> {
-    return {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       'User-Agent': this.getUserAgent(),
       'Accept': 'application/json',
@@ -55,22 +58,20 @@ export class ChatGPTClient {
       'Sec-Fetch-Dest': 'empty',
       'Sec-Fetch-Mode': 'cors',
       'Sec-Fetch-Site': 'same-origin',
-      Authorization: `Bearer ${this.accessToken}`,
       'Oai-Device-Id': this.deviceId,
       'Oai-Language': 'en-US',
     };
+    if (this.cookies) {
+      headers['Cookie'] = this.cookies;
+    } else if (this.accessToken) {
+      headers['Authorization'] = `Bearer ${this.accessToken}`;
+    }
+    return headers;
   }
 
   async initialize(): Promise<void> {
-    const response = await this.fetchRaw(`${BASE_URL}/backend-api/conversations?offset=0&limit=1`);
-    if (!response.ok) {
-      const body = await response.text().catch(() => '(no body)');
-      logger.debug('Auth check failed', { status: response.status, body: body.slice(0, 500) });
-      if (response.status === 401 || response.status === 403) {
-        throw new AuthenticationError(`Access token rejected (HTTP ${response.status})`);
-      }
-      throw new NetworkError(`Failed to verify token: ${response.status}`, response.status);
-    }
+    // fetchRaw throws AuthenticationError on 401/403, so reaching here = success
+    await this.fetchRaw(`${BASE_URL}/backend-api/conversations?offset=0&limit=1`);
     logger.info('Successfully authenticated');
   }
 

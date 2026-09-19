@@ -42,13 +42,46 @@ chatgpt-exporter projects -t $CHATGPT_TOKEN
 
 ## Authentication
 
-Pass `--token` once, or set `CHATGPT_TOKEN` in your environment. To get your token:
+Two methods are supported. Use whichever works for you:
+
+### Method 1: Bearer token (OAuth)
+
+```bash
+chatgpt-exporter backup --token $CHATGPT_TOKEN
+```
+
+Or set `CHATGPT_TOKEN` env var.
+
+**To get the token:** Open https://chatgpt.com → DevTools → Network → `/backend-api/*` → copy `Authorization: Bearer ***` header value.
+
+⚠️ OAuth tokens expire and may be revoked if used from CLI outside the browser context.
+
+### Method 2: Browser cookies (recommended)
+
+```bash
+chatgpt-exporter backup --cookies "key1=val1; key2=val2"
+```
+
+Or set `CHATGPT_COOKIES` env var.
+
+**To get the cookies:**
 
 1. Open https://chatgpt.com in your browser
 2. Open DevTools → Application → Cookies
-3. Copy the value of `__Secure-next-auth.session-token`
+3. Copy all cookie names and values as `name1=value1; name2=value2`
 
-Tokens expire — refresh periodically.
+Or use a browser extension like "EditThisCookie" or "Cookie-Editor" → Export as string.
+
+The tool sends cookies with every request to `chatgpt.com/backend-api/*`. No token required.
+
+### YAML config
+
+```yaml
+# .chatgpt-exporter.yaml
+cookies: "__Secure-next-auth.session-token=abc123; oai-sc=xyz..."
+output: ./my-export
+format: [md, json]
+```
 
 ## What's different from the original
 
